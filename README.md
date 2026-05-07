@@ -8,7 +8,7 @@ A Rust service that provides null checking via an HTTP API.
 
 ## Features
 
-- Exposes a `GET` or `POST` endpoint at `/check` for null checking operations.
+- Exposes a `POST` endpoint at `/check` for null checking operations.
 - Provides Swagger UI at `/swagger-ui`.
 - Exposes the OpenAPI specification JSON at `/api-docs/openapi.json`.
 - Supports port configuration through the `PORT` environment variable.
