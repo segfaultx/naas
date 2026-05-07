@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.naas.name }}
+          image: "{{ .Values.naas.image }}:{{ .Chart.AppVersion }}"
+          imagePullPolicy: Always
+          ports:
+            - containerPort: {{ .Values.config.port }}
+          env:
+            - name: PORT
+              value: {{ .Values.config.port }}

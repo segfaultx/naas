@@ -1,0 +1,20 @@
+appName: "naas"
+namespace: "naas"
+
+naas:
+  image: ""
+
+service:
+  port: 3000
+  name: "naas-service"
+
+ingress:
+  name: "naas-ingress"
+  class_name: "traefik"
+  hostname: "naas"
+
+deployment:
+  name: "naas-deployment"
+
+config:
+  port: 3000
