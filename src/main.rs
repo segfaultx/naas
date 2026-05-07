@@ -4,6 +4,7 @@ use axum::{
     response::{IntoResponse, Response},
     routing::post,
 };
+use envconfig::Envconfig;
 use tracing::{error, info, instrument};
 use tracing_subscriber::{EnvFilter, fmt};
 
@@ -17,18 +18,36 @@ fn init_tracing() {
         .init();
 }
 
+#[derive(Envconfig, Debug)]
+struct Config {
+    #[envconfig(from = "PORT", default = "3000")]
+    port: String,
+    #[envconfig(from = "ENDPOINT", default = "/")]
+    endpoint: String,
+}
+
 #[tokio::main]
 #[instrument]
 async fn main() -> Result<(), anyhow::Error> {
     init_tracing();
 
+    info!("Reading config from env");
+
+    let Ok(config) = Config::init_from_env() else {
+        error!("Error when reading config from env");
+        bail!("Error when reading config from env");
+    };
+
+    info!("Found config: {:?}", config);
+
     info!("Setting up NAAS service, your friendly null check companion");
 
-    let app = Router::new().route("/", post(check_null));
+    let app = Router::new().route(&config.endpoint, post(check_null));
 
     info!("Binding configured port");
 
-    let Ok(listener) = tokio::net::TcpListener::bind("0.0.0.0:3000").await else {
+    let Ok(listener) = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", config.port)).await
+    else {
         error!("Error when trying to set up tcp listener");
         bail!("Error creating tcp listener");
     };
