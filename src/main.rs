@@ -7,6 +7,8 @@ use axum::{
 use envconfig::Envconfig;
 use tracing::{error, info, instrument};
 use tracing_subscriber::{EnvFilter, fmt};
+use utoipa::OpenApi;
+use utoipa_swagger_ui::SwaggerUi;
 
 fn init_tracing() {
     let filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
@@ -22,8 +24,6 @@ fn init_tracing() {
 struct Config {
     #[envconfig(from = "PORT", default = "3000")]
     port: String,
-    #[envconfig(from = "ENDPOINT", default = "/")]
-    endpoint: String,
 }
 
 #[tokio::main]
@@ -42,7 +42,9 @@ async fn main() -> Result<(), anyhow::Error> {
 
     info!("Setting up NAAS service, your friendly null check companion");
 
-    let app = Router::new().route(&config.endpoint, post(check_null));
+    let app = Router::new()
+        .route("/check", post(check_null))
+        .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()));
 
     info!("Binding configured port");
 
@@ -64,7 +66,24 @@ async fn main() -> Result<(), anyhow::Error> {
     Ok(())
 }
 
+#[derive(OpenApi)]
+#[openapi(
+    paths(check_null),
+    tags(
+        (name = "api", description = "Null check endpoints")
+    )
+)]
+struct ApiDoc;
+
 #[instrument]
+#[utoipa::path(
+    post,
+    path = "/check",
+    request_body = Option<String>,
+    responses(
+        (status = 200, description = "Null check", body = String)
+    )
+)]
 async fn check_null(body: String) -> Response {
     let trimmed = body.trim().to_lowercase();
 
