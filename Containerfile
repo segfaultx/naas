@@ -6,7 +6,7 @@ COPY . .
 
 RUN cargo build --release
 
-FROM node:24-alpine
+FROM node:26-alpine
 
 COPY --from=builder /app/target/release/bw-backup-cli /app
 
